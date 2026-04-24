@@ -1,7 +1,15 @@
-import { DataTable } from '@/components/data-table'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { getServerSession } from '@/lib/auth'
 
-import data from './data.json'
+export default async function DashboardPage() {
+  const cookieHeader = (await headers()).get('cookie')
+  const session = await getServerSession(cookieHeader)
 
-export default function DashboardPage() {
-  return <DataTable data={data} />
+  if (!session) redirect('/auth/sign-in')
+  return (
+    <div>
+      <h1>Welcome {session.user.name}</h1>
+    </div>
+  )
 }
