@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +31,7 @@ export function NavDocuments({
   items: {
     name: string
     url: string
-    icon: React.ReactNode
+    icon?: React.ComponentType<{ className?: string }>
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -40,11 +42,11 @@ export function NavDocuments({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                {item.icon}
+            <SidebarMenuButton asChild tooltip={item.name}>
+              <Link href={item.url}>
+                {item.icon && <item.icon className='size-5' />}
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
