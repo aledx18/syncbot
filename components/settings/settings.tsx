@@ -53,7 +53,7 @@ export function Settings({ className, view, path, hideNav }: SettingsProps) {
         <TabsList aria-label={localization.settings.settings}>
           <TabsTrigger value='account' asChild>
             <Link
-              href={`/dashboard/${basePaths.settings}/${viewPaths.settings.account}`}
+              href={`/dashboard${basePaths.settings}/${viewPaths.settings.account}`}
             >
               {localization.settings.account}
             </Link>
@@ -61,7 +61,7 @@ export function Settings({ className, view, path, hideNav }: SettingsProps) {
 
           <TabsTrigger value='security' asChild>
             <Link
-              href={`/dashboard/${basePaths.settings}/${viewPaths.settings.security}`}
+              href={`/dashboard${basePaths.settings}/${viewPaths.settings.security}`}
             >
               {localization.settings.security}
             </Link>
