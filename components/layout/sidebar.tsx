@@ -16,7 +16,10 @@ import {
   Table2Icon,
   CircleHelpIcon,
   SearchIcon,
-  LayoutDashboardIcon
+  LayoutDashboardIcon,
+  ListIcon,
+  TextIcon,
+  CalendarIcon
 } from 'lucide-react'
 
 // ============================================================
@@ -59,6 +62,21 @@ function getBotNav(botId: string) {
       title: 'Contacts',
       href: `/dashboard/${botId}/contacts`,
       icon: Table2Icon
+    },
+    {
+      title: 'Texts',
+      href: `/dashboard/${botId}/texts`,
+      icon: TextIcon
+    },
+    {
+      title: 'Lists',
+      href: `/dashboard/${botId}/list`,
+      icon: ListIcon
+    },
+    {
+      title: 'Services',
+      href: `/dashboard/${botId}/services`,
+      icon: CalendarIcon
     }
   ]
 }

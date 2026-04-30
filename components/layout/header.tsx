@@ -1,5 +1,6 @@
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { BreadcrumbNav } from './breadcrumb'
 
 export function SiteHeader() {
   return (
@@ -10,7 +11,7 @@ export function SiteHeader() {
           orientation='vertical'
           className='mx-2 data-[orientation=vertical]:h-8'
         />
-        <h1 className='text-base font-medium'>Documents</h1>
+        <BreadcrumbNav />
       </div>
     </header>
   )
