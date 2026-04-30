@@ -3,13 +3,15 @@
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { BotIcon, ChevronRightIcon } from 'lucide-react'
-import { GetBotsResponse } from '@/types/api-types'
-import { clientFetch } from '@/lib/client-fetch'
+import type { Bot, Organization } from '@/generated/prisma/client'
 
-async function fetchBots(): Promise<GetBotsResponse> {
-  return clientFetch<GetBotsResponse>('http://localhost:3000/api/admin/bots')
+async function fetchBots(): Promise<{
+  bots: (Bot & { organization: Organization })[]
+}> {
+  const res = await fetch('/api/admin/bots', { credentials: 'include' })
+  if (!res.ok) throw new Error('Failed to fetch bots')
+  return res.json()
 }
-
 export function BotsCards() {
   const { data, isLoading } = useQuery({
     queryKey: ['bots'],

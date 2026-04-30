@@ -1,21 +1,20 @@
 import { BotsCards } from '@/components/bots/cards'
-import { serverFetch } from '@/lib/server-fetch'
-import { getQueryClient } from '@/lib/get-query-client'
-import { GetBotsResponse } from '@/types/api-types'
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
-
-async function getBots() {
-  return serverFetch<GetBotsResponse>('api/admin/bots')
-}
+import { Spinner } from '@/components/ui/spinner'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
 export default async function DashboardPage() {
-  const queryClient = getQueryClient()
-
-  await queryClient.prefetchQuery({
-    queryKey: ['bots'],
-    queryFn: getBots
+  const session = await auth.api.getSession({
+    headers: await headers()
   })
 
+  if (!session) {
+    return (
+      <div className='flex justify-center my-auto'>
+        <Spinner color='current' />
+      </div>
+    )
+  }
   return (
     <div className='p-4 md:p-6'>
       <div className='mb-6'>
@@ -24,10 +23,7 @@ export default async function DashboardPage() {
           Choose a bot to manage its contacts and settings
         </p>
       </div>
-
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <BotsCards />
-      </HydrationBoundary>
+      <BotsCards />
     </div>
   )
 }

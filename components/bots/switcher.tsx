@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { BotIcon, ChevronsUpDown } from 'lucide-react'
-
 import { useQuery } from '@tanstack/react-query'
+import type { Bot } from '@/generated/prisma/client'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,28 +20,30 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
-import { GetBotsResponse } from '@/types/api-types'
-import { clientFetch } from '@/lib/client-fetch'
+import { Skeleton } from '@/components/ui/skeleton'
 
-async function fetchBots(): Promise<GetBotsResponse> {
-  return clientFetch<GetBotsResponse>('http://localhost:3000/api/admin/bots')
+interface BotsResponse {
+  bots: Bot[]
+}
+
+async function fetchBots(): Promise<BotsResponse> {
+  const res = await fetch('/api/admin/bots', { credentials: 'include' })
+  if (!res.ok) throw new Error('Failed to fetch bots')
+  return res.json()
 }
 
 export function BotSwitcher() {
   const router = useRouter()
+  const params = useParams()
   const { isMobile } = useSidebar()
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['bots'],
-    queryFn: fetchBots
+    queryFn: fetchBots,
+    staleTime: 5 * 60 * 1000
   })
 
   const bots = data?.bots ?? []
-
-  // Si no hay bots, no renderizamos nada
-  if (bots.length === 0) {
-    return null
-  }
 
   return (
     <SidebarMenu>
@@ -55,10 +58,21 @@ export function BotSwitcher() {
                 <BotIcon className='size-4' />
               </div>
               <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-medium'>Select a Bot</span>
-                <span className='truncate text-xs text-muted-foreground'>
-                  {bots.length} bot{bots.length !== 1 ? 's' : ''} available
-                </span>
+                {isLoading ? (
+                  <div className='flex flex-col gap-1'>
+                    <Skeleton className='h-4 w-24' />
+                    <Skeleton className='h-3 w-16' />
+                  </div>
+                ) : (
+                  <>
+                    <span className='font-medium truncate'>
+                      {bots[0]?.name ?? 'No bot'}
+                    </span>
+                    <span className='text-xs text-muted-foreground truncate'>
+                      {bots.length} bot{bots.length === 1 ? '' : 's'}
+                    </span>
+                  </>
+                )}
               </div>
               <ChevronsUpDown className='ml-auto' />
             </SidebarMenuButton>
@@ -73,29 +87,18 @@ export function BotSwitcher() {
               Your Bots
             </DropdownMenuLabel>
             {bots.map((bot) => (
-              <DropdownMenuItem
-                key={bot.id}
-                onClick={() => router.push(`/dashboard/${bot.id}`)}
-                className='gap-2 cursor-pointer'
-              >
-                <div className='flex size-6 items-center justify-center rounded-md border bg-muted'>
-                  <BotIcon className='size-3.5 shrink-0' />
-                </div>
-                <div className='flex-1 min-w-0'>
-                  <div className='truncate font-medium'>{bot.name}</div>
-                  <div className='truncate text-xs text-muted-foreground'>
-                    {bot.phone_number_id}
+              <DropdownMenuItem key={bot.id} asChild className='cursor-pointer'>
+                <Link href={`/dashboard/${bot.id}`}>
+                  <div className='flex size-6 items-center justify-center rounded-md border bg-muted'>
+                    <BotIcon className='size-3.5 shrink-0' />
                   </div>
-                </div>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
-                    bot.is_active
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                      : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
-                  }`}
-                >
-                  {bot.is_active ? 'Active' : 'Inactive'}
-                </span>
+                  <div className='flex flex-col'>
+                    <span className='font-medium'>{bot.name}</span>
+                    <span className='text-xs text-muted-foreground'>
+                      {bot.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </Link>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

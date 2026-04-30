@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import type { Bot } from '@/types/typesPrisma'
+import type { Bot } from '@/generated/prisma/client'
 
 interface BotContextValue {
   activeBot: Bot | null
