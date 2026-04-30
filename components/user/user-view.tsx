@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { useSession } from "@better-auth-ui/react"
-import type { User } from "better-auth"
+import { useSession } from '@better-auth-ui/react'
+import type { User } from 'better-auth'
 
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { UserAvatar } from "./user-avatar"
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
+import { UserAvatar } from './user-avatar'
 
 export type UserViewProps = {
   className?: string
@@ -31,30 +31,30 @@ export function UserView({ className, isPending, user }: UserViewProps) {
 
   if ((isPending || sessionPending) && !user) {
     return (
-      <div className={cn("flex items-center gap-2", className)}>
+      <div className={cn('flex items-center gap-2', className)}>
         <UserAvatar isPending />
 
-        <div className="grid flex-1 gap-1 text-left text-sm">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-3 w-32" />
+        <div className='grid flex-1 gap-1 text-left text-sm'>
+          <Skeleton className='h-4 w-24' />
+          <Skeleton className='h-3 w-28' />
         </div>
       </div>
     )
   }
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn('flex items-center gap-2', className)}>
       <UserAvatar user={resolvedUser} />
 
-      <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-medium text-foreground">
+      <div className='grid flex-1 text-left text-sm leading-tight'>
+        <span className='truncate font-medium text-foreground'>
           {resolvedUser?.displayUsername ||
             resolvedUser?.name ||
             resolvedUser?.email}
         </span>
 
         {(resolvedUser?.displayUsername || resolvedUser?.name) && (
-          <span className="text-muted-foreground truncate text-xs">
+          <span className='text-muted-foreground truncate text-xs'>
             {resolvedUser?.email}
           </span>
         )}

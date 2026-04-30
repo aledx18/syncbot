@@ -2,17 +2,12 @@ import { AppSidebar } from '@/components/layout/sidebar'
 import { BotProvider } from '@/components/bots/provider'
 import { SiteHeader } from '@/components/layout/header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getServerSession } from '@/lib/auth'
-import { headers } from 'next/headers'
 
 export default async function DashboardLayout({
   children
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession((await headers()).get('cookie'))
-  if (!session) return null
-
   return (
     <SidebarProvider
       style={

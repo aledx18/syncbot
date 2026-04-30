@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  useAuth,
-  useListDeviceSessions,
-  useSession
-} from '@better-auth-ui/react'
+import { useAuth, useSession } from '@better-auth-ui/react'
 import { Check, CirclePlus } from 'lucide-react'
 
 import {
@@ -12,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu'
-import { SwitchAccountItem } from './switch-account-item'
 import { UserView } from './user-view'
 
 /**
@@ -27,9 +22,7 @@ import { UserView } from './user-view'
 export function SwitchAccountMenu() {
   const { basePaths, viewPaths, localization, Link } = useAuth()
   const { data: session } = useSession()
-  // TODO: disabled multi-session request
-  // const { data: deviceSessions, isPending } = useListDeviceSessions()
-  const deviceSessions = null
+  // TODO: disabled multi-session request — no device sessions
   const isPending = false
 
   return (
@@ -40,16 +33,7 @@ export function SwitchAccountMenu() {
         {!isPending && <Check className='ml-auto' />}
       </DropdownMenuItem>
 
-      {deviceSessions
-        ?.filter(
-          (deviceSession) => deviceSession.session.id !== session?.session.id
-        )
-        .map((deviceSession) => (
-          <SwitchAccountItem
-            key={deviceSession.session.id}
-            deviceSession={deviceSession}
-          />
-        ))}
+      {/* Multi-session disabled — no device sessions to list */}
 
       <DropdownMenuSeparator />
 

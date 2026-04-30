@@ -1,31 +1,48 @@
-// lib/auth.ts
-import { createAuthClient } from 'better-auth/react'
-import { cache } from 'react'
+import { betterAuth } from 'better-auth'
+import { prismaAdapter } from 'better-auth/adapters/prisma'
+import prisma from './prismaClient'
+import { createAuthMiddleware } from 'better-auth/api'
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
-  fetchOptions: {
-    credentials: 'include'
-  }
-})
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: 'postgresql'
+  }),
+  emailAndPassword: {
+    enabled: true
+  },
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      if (!ctx.path.startsWith('/sign-up')) return
 
-export const { signIn, signUp, signOut, useSession } = authClient
+      const newSession = ctx.context.newSession
+      if (!newSession) return
 
-// 👇 cache() deduplica llamadas en el mismo request
-export const getServerSession = cache(async (cookieHeader: string | null) => {
-  console.log('🔍 getServerSession ejecutado')
-  if (!cookieHeader) return null
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL}/api/auth/get-session`,
-      {
-        headers: { cookie: cookieHeader },
-        cache: 'no-store' // 👈 no cachear en fetch cache, solo en React cache
+      try {
+        const webhookSecret = process.env.WEBHOOK_SECRET
+        if (!webhookSecret || !process.env.KAPSO_API_KEY) {
+          throw new Error('Missing required environment variables')
+        }
+
+        const organization = await prisma.organization.create({
+          data: {
+            name: 'Mi organización',
+            user_id: newSession.user.id,
+            kapso_api_key: process.env.KAPSO_API_KEY
+          }
+        })
+
+        await prisma.bot.create({
+          data: {
+            name: 'Mi bot',
+            webhook_secret: webhookSecret,
+            phone_number_id: '',
+            organization_id: organization.id
+          }
+        })
+      } catch (err) {
+        console.error('[Auth Hook] Error creating org/bot:', err)
       }
-    )
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
+    })
   }
 })
+// todo: add hooks for create organization on sign up

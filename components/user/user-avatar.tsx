@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import { useSession } from "@better-auth-ui/react"
-import type { User } from "better-auth"
-import { User2 } from "lucide-react"
-import type { ReactNode } from "react"
+import { useSession } from '@better-auth-ui/react'
+import type { User } from 'better-auth'
+import { User2 } from 'lucide-react'
+import type { ReactNode } from 'react'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export type UserAvatarProps = {
   className?: string
@@ -39,7 +39,7 @@ export function UserAvatar({
   })
 
   if ((isPending || sessionPending) && !user) {
-    return <Skeleton className={cn("size-8 rounded-full", className)} />
+    return <Skeleton className={cn('size-8 rounded-full', className)} />
   }
 
   const resolvedUser = user ?? session?.user
@@ -55,7 +55,7 @@ export function UserAvatar({
   return (
     <Avatar
       className={cn(
-        "size-8 bg-muted text-foreground text-sm rounded-full",
+        'size-8 bg-muted text-foreground text-sm rounded-full',
         className
       )}
     >
@@ -69,7 +69,7 @@ export function UserAvatar({
       />
 
       <AvatarFallback delayMs={resolvedUser?.image ? 600 : undefined}>
-        {fallback || initials || <User2 className="size-4" />}
+        {fallback || initials || <User2 className='size-4' />}
       </AvatarFallback>
     </Avatar>
   )

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 
 import { AuthProvider } from '../auth/auth-provider'
 import { Toaster } from '../ui/sonner'
-import { authClient } from '@/lib/auth'
+import { authClient } from '@/lib/auth-client'
 
 export function Providers({ children }: { children: ReactNode }) {
   const router = useRouter()
