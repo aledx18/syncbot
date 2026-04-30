@@ -1,0 +1,251 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Organization {
+    id            String   @id @default(cuid())
+    name          String
+    kapso_api_key String
+    created_at    DateTime @default(now())
+    updated_at    DateTime @updatedAt
+
+    user_id String?
+    user    User?   @relation(fields: [user_id], references: [id])
+
+    bots Bot[]
+}
+
+model Bot {
+    id              String   @id @default(cuid())
+    name            String
+    webhook_secret  String
+    phone_number_id String   @unique // ← clave para identificar el tenant en el webhook
+    is_active       Boolean  @default(true)
+    created_at      DateTime @default(now())
+    updated_at      DateTime @updatedAt
+
+    organization_id String
+    organization    Organization @relation(fields: [organization_id], references: [id])
+
+    contacts       Contact[]
+    texts          BotText[]
+    lists          BotList[]
+    services       Service[]
+    conversations  Conversation[]
+    appointments   Appointment[]
+    availabilities Availability[]
+}
+
+model Contact {
+    id           String   @id @default(cuid())
+    phone_number String
+    name         String?
+    created_at   DateTime @default(now())
+    last_seen_at DateTime @updatedAt
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+
+    conversation Conversation?
+    appointments Appointment[]
+
+    // mismo número puede existir en dos bots distintos
+    @@unique([phone_number, bot_id])
+}
+
+model Conversation {
+    id         String    @id @default(cuid())
+    flow       String? // "appointment", "cancellation", null = idle
+    step       String? // paso dentro del flujo
+    data       Json      @default("{}") // datos recopilados durante el flujo
+    expires_at DateTime?
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+
+    contact_id String  @unique // un contacto tiene una sola conversación activa
+    contact    Contact @relation(fields: [contact_id], references: [id])
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+}
+
+model BotText {
+    id         String   @id @default(cuid())
+    key        String // "welcome_message", "help_message", etc
+    value      String
+    triggers   String[] // ["Hola", "Hello"], ["Menu"], etc
+    handler    String? // handler key (opcional) — si no está, usa key como fallback
+    updated_at DateTime @updatedAt
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+
+    @@unique([key, bot_id])
+}
+
+model BotList {
+    id            String  @id @default(cuid())
+    list_key      String // "delivery", "payment"
+    section_title String
+    header        String?
+    body          String
+    button_label  String
+    footer        String?
+    bot_id        String
+    bot           Bot     @relation(fields: [bot_id], references: [id])
+
+    rows BotListRow[]
+
+    @@unique([list_key, bot_id])
+}
+
+model BotListRow {
+    id          String  @id @default(cuid())
+    id_key      String // "STANDARD", "EXPRESS" — mapea a listIds.ts
+    title       String
+    description String?
+    order       Int
+    is_active   Boolean @default(true)
+    flow        String? // ← "appointment", "cancellation" — null si no inicia flow
+    handler     String? // ← handler key igual que BotText, para rows que ejecutan acciones
+
+    list_id String
+    list    BotList @relation(fields: [list_id], references: [id])
+
+    @@unique([id_key, list_id])
+}
+
+model Service {
+    id               String  @id @default(cuid())
+    name             String
+    description      String?
+    duration_minutes Int
+    is_active        Boolean @default(true)
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+
+    availability Availability[]
+    appointments Appointment[]
+}
+
+model Availability {
+    id           String   @id @default(cuid())
+    date         DateTime @db.Date
+    start_time   DateTime @db.Time
+    end_time     DateTime @db.Time
+    total_slots  Int      @default(1)
+    booked_slots Int      @default(0)
+    is_blocked   Boolean  @default(false)
+
+    service_id String
+    service    Service @relation(fields: [service_id], references: [id])
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+
+    appointments Appointment[]
+}
+
+model Appointment {
+    id               String            @id @default(cuid())
+    status           AppointmentStatus @default(PENDING)
+    notes            String?
+    cancelled_reason String?
+    slot_iso         String? // ISO del slot específico elegido (para mostrar en cancel/reschedule)
+    created_at       DateTime          @default(now())
+    updated_at       DateTime          @updatedAt
+
+    contact_id String
+    contact    Contact @relation(fields: [contact_id], references: [id])
+
+    availability_id String
+    availability    Availability @relation(fields: [availability_id], references: [id])
+
+    service_id String
+    service    Service @relation(fields: [service_id], references: [id])
+
+    bot_id String
+    bot    Bot    @relation(fields: [bot_id], references: [id])
+}
+
+enum AppointmentStatus {
+    PENDING
+    CONFIRMED
+    CANCELLED
+    RESCHEDULED
+}
+
+model User {
+    id            String         @id
+    name          String
+    email         String
+    emailVerified Boolean        @default(false)
+    image         String?
+    createdAt     DateTime       @default(now())
+    updatedAt     DateTime       @updatedAt
+    sessions      Session[]
+    accounts      Account[]
+    organizations Organization[]
+
+    @@unique([email])
+    @@map("user")
+}
+
+model Session {
+    id        String   @id
+    expiresAt DateTime
+    token     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([token])
+    @@index([userId])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id
+    accountId             String
+    providerId            String
+    userId                String
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+
+    @@index([userId])
+    @@map("account")
+}
+
+model Verification {
+    id         String   @id
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([identifier])
+    @@map("verification")
+}

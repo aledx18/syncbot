@@ -42,3 +42,5 @@ skills-lock.json
 # Project instructions
 AGENTS.md
 CLAUDE.md
+
+/generated/prisma
