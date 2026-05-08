@@ -4,7 +4,8 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { Providers } from '@/components/providers/providers'
+import { AuthProviders } from '@/components/providers/providers'
+import Providers from '@/lib/query-providers'
 
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -32,7 +33,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <TooltipProvider>
-            <Providers>{children}</Providers>
+            <Providers>
+              <AuthProviders>{children}</AuthProviders>
+            </Providers>
           </TooltipProvider>
         </ThemeProvider>
       </body>
