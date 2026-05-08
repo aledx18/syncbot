@@ -1,18 +1,18 @@
+import { createMiddleware } from 'hono/factory'
 import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { NextResponse } from 'next/server'
 
-export async function requireAuth() {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  })
+export const requireAuth = createMiddleware(async (c, next) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers })
+  if (!session) return c.json({ error: 'Unauthorized' }, 401)
 
-  if (!session) {
-    return {
-      session: null,
-      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-  }
+  c.set('user', session.user)
+  c.set('session', session.session)
 
-  return { session, error: null }
+  await next()
+})
+
+// lib/auth-middleware.ts
+export type Variables = {
+  user: typeof auth.$Infer.Session.user
+  session: typeof auth.$Infer.Session.session
 }
